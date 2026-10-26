@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f2ed">
+<title>VIQRA CIRCUIT — Prototype 03</title>
+<style>
+:root{color-scheme:light;--ink:#1d211f;--muted:#777d78;--paper:#f4f2ed}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}
+header{height:66px;padding:0 clamp(16px,4vw,42px);display:flex;align-items:center;justify-content:space-between;background:#fbfaf7;border-bottom:1px solid #dedbd4}
+.brand{font-size:19px;font-weight:750;letter-spacing:.19em}.tag{font-size:10px;letter-spacing:.16em;color:#777d78}
+main{max-width:1120px;margin:0 auto;padding:22px clamp(10px,2.5vw,28px) 32px}
+.intro{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:0 0 14px}
+h1{font-size:clamp(20px,3vw,28px);letter-spacing:.035em;margin:0 0 5px;font-weight:650}
+.intro p{font-size:12px;color:#717670;margin:0;line-height:1.55}
+.version{font-size:9px;color:#727872;letter-spacing:.14em;white-space:nowrap}
+.frame{overflow:hidden;border:1px solid #d6d2c9;border-radius:14px;background:#e9e6df;box-shadow:0 16px 44px #433d3012}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1000/650;touch-action:pan-y}
+.controls{display:flex;align-items:center;gap:12px;padding:14px 15px;background:#fbfaf7;border-top:1px solid #dcd8d0}
+button{border:0;border-radius:999px;background:#1e2421;color:white;font-weight:700;font-size:11px;letter-spacing:.15em;padding:13px 22px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:active{transform:scale(.98)}
+#status{font-size:11px;line-height:1.5;color:#626862;flex:1}
+#clock{font-variant-numeric:tabular-nums;font-size:11px;color:#3e453f;white-space:nowrap}
+.note{font-size:10px;line-height:1.7;color:#7a7d77;margin:12px 3px 0}
+@media(max-width:520px){header{height:58px}.tag{font-size:8px}main{padding-top:15px}.intro{align-items:start}.version{padding-top:5px;font-size:8px}.controls{gap:8px;padding:11px 10px}button{padding:13px 16px;font-size:10px}#status{font-size:10px}#clock{font-size:10px}.frame{border-radius:10px}}
+</style>
+</head>
+<body>
+<header><div class="brand">VIQRA</div><div class="tag">CIRCUIT / INTERACTIVE EXPERIMENT</div></header>
+<main>
+  <div class="intro"><div><h1>One thing moves another.</h1><p>ひとつの動きが、次の動きを生む。30秒の連鎖装置。</p></div><div class="version">PROTOTYPE 03 / 3D STUDY</div></div>
+  <section class="frame">
+    <canvas id="scene" width="1000" height="650" aria-label="VIQRA CIRCUIT animation"></canvas>
+    <div class="controls"><button id="start">START CIRCUIT</button><div id="status">スタートすると、ビー玉から最後のライトまで連鎖します。</div><div id="clock">00:00 / 00:30</div></div>
+  </section>
+  <p class="note">試作版です。見た目は3D風の立体描画、動きは連続軌道で構成しています。もう一度見るときは REPLAY を押してください。</p>
+</main>
+<script>
+(() => {
+const canvas=document.getElementById('scene'), c=canvas.getContext('2d');
+const startBtn=document.getElementById('start'), status=document.getElementById('status'), clock=document.getElementById('clock');
+const W=1000,H=650,DURATION=30;
+let startedAt=null, finished=false, lastT=0, raf=0;
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const smooth=v=>{v=clamp(v);return v*v*(3-2*v)};
+const easeOut=v=>1-Math.pow(1-clamp(v),3);
+const lerp=(a,b,t)=>a+(b-a)*t;
+function resize(){const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=W*dpr;canvas.height=H*dpr;c.setTransform(dpr,0,0,dpr,0,0);draw(lastT)}
+window.addEventListener('resize',resize);
+function pathCurve(p,t){const u=1-t;return{x:u*u*u*p[0].x+3*u*u*t*p[1].x+3*u*t*t*p[2].x+t*t*t*p[3].x,y:u*u*u*p[0].y+3*u*u*t*p[1].y+3*u*t*t*p[2].y+t*t*t*p[3].y}}
+function curvePath(ctx,p,off=0){ctx.beginPath();ctx.moveTo(p[0].x,p[0].y+off);ctx.bezierCurveTo(p[1].x,p[1].y+off,p[2].x,p[2].y+off,p[3].x,p[3].y+off)}
+function ellipse(x,y,rx,ry,fill,blur=0){c.save();c.shadowColor=blur?'#171b1840':'transparent';c.shadowBlur=blur;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();c.restore()}
+const track1=[{x:83,y:206},{x:128,y:214},{x:173,y:273},{x:267,y:284}];
+const track2=[{x:649,y:423},{x:682,y:385},{x:741,y:402},{x:786,y:359}];
+const track3=[{x:813,y:383},{x:831,y:413},{x:860,y:430},{x:888,y:470}];
+function drawTrack(p,offset=0){
+  curvePath(c,p,offset+5);c.strokeStyle='#20252255';c.lineWidth=13;c.lineCap='round';c.stroke();
+  curvePath(c,p,offset);c.strokeStyle='#343a38';c.lineWidth=12;c.lineCap='round';c.stroke();
+  curvePath(c,p,offset-1);c.strokeStyle='#a8b2b0';c.lineWidth=7;c.lineCap='round';c.stroke();
+  curvePath(c,p,offset-2);c.strokeStyle='#eef4f1';c.lineWidth=2;c.lineCap='round';c.stroke();
+}
+function drawGear(x,y,r,angle,metal=true){
+ c.save();c.translate(x,y);c.rotate(angle);
+ ellipse(2,7,r+2,r*.78,'#161b1940',2);
+ const teeth=16;
+ for(let i=0;i<teeth;i++){c.save();c.rotate(i*Math.PI*2/teeth);const g=c.createLinearGradient(-r,0,r,0);g.addColorStop(0,metal?'#68716f':'#8e7554');g.addColorStop(.5,metal?'#e3e8e5':'#dcc49b');g.addColorStop(1,metal?'#7c8582':'#89704c');c.fillStyle=g;c.fillRect(r-3,-r*.13,11,r*.26);c.restore()}
+ let grad=c.createRadialGradient(-r*.25,-r*.3,2,0,0,r);grad.addColorStop(0,metal?'#f5f7f4':'#fff0c8');grad.addColorStop(.5,metal?'#aab3af':'#b59a6d');grad.addColorStop(1,metal?'#505957':'#65523b');
+ c.beginPath();c.arc(0,0,r-3,0,Math.PI*2);c.fillStyle=grad;c.fill();c.strokeStyle=metal?'#454d4a':'#635039';c.lineWidth=2;c.stroke();
+ c.strokeStyle=metal?'#edf0ed':'#f1d9a9';c.lineWidth=2;
+ for(let i=0;i<8;i++){c.save();c.rotate(i*Math.PI/4);c.beginPath();c.moveTo(0,0);c.lineTo(r*.65,0);c.stroke();c.restore()}
+ const h=c.createRadialGradient(-4,-5,1,0,0,r*.25);h.addColorStop(0,'#fff');h.addColorStop(.5,'#9ea7a2');h.addColorStop(1,'#454c49');c.beginPath();c.arc(0,0,r*.24,0,Math.PI*2);c.fillStyle=h;c.fill();c.strokeStyle='#464d49';c.stroke();
+ c.restore();
+}
+function drawBall(x,y,r,highlight=true){
+ ellipse(x+4,y+r*.95,r*1.03,r*.42,'#1a1d1a38',5);
+ const g=c.createRadialGradient(x-r*.35,y-r*.42,r*.05,x,y,r*1.1);g.addColorStop(0,'#ffffff');g.addColorStop(.16,'#dce4e8');g.addColorStop(.42,'#87959d');g.addColorStop(.72,'#39464d');g.addColorStop(1,'#11191e');
+ c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fillStyle=g;c.fill();c.strokeStyle='#283139';c.lineWidth=1;c.stroke();
+ if(highlight){ellipse(x-r*.31,y-r*.38,r*.17,r*.11,'#ffffffc9',1)}
+}
+function drawDomino(x,y,fall){
+ c.save();c.translate(x,y);c.rotate(fall*1.1);
+ c.fillStyle='#20252238';c.beginPath();c.ellipse(3,3,12,5,0,0,Math.PI*2);c.fill();
+ const h=42,w=13,depth=5;
+ c.beginPath();c.moveTo(-w/2,-h);c.lineTo(-w/2+depth,-h-4);c.lineTo(w/2+depth,-h-4);c.lineTo(w/2,-h);c.closePath();c.fillStyle='#e8e6df';c.fill();
+ c.beginPath();c.moveTo(w/2,-h);c.lineTo(w/2+depth,-h-4);c.lineTo(w/2+depth,-4);c.lineTo(w/2,0);c.closePath();c.fillStyle='#646b68';c.fill();
+ const gr=c.createLinearGradient(-w/2,0,w/2,0);gr.addColorStop(0,'#aeb6b0');gr.addColorStop(.5,'#f7f6f0');gr.addColorStop(1,'#8c9690');
+ c.fillStyle=gr;c.fillRect(-w/2,-h,w,h);c.strokeStyle='#525a56';c.lineWidth=1;c.strokeRect(-w/2,-h,w,h);
+ c.beginPath();c.arc(0,-h*.62,2,0,Math.PI*2);c.fillStyle='#69716c';c.fill();
+ c.restore();
+}
+function drawPulley(angle,weightY){
+ // rope and mounting
+ c.strokeStyle='#393f3c';c.lineWidth=3;c.beginPath();c.moveTo(540,230);c.lineTo(540,252);c.stroke();
+ c.fillStyle='#535b57';c.fillRect(530,222,20,8);
+ // rope follows wheel down to the weight
+ c.strokeStyle='#8a7659';c.lineWidth=2.5;c.beginPath();c.moveTo(559,262);c.quadraticCurveTo(570,282,559,299);c.lineTo(559,weightY-13);c.stroke();
+ drawGear(540,258,27,angle,false);
+ // weight body
+ c.save();c.translate(559,weightY);
+ c.shadowColor='#0004';c.shadowBlur=8;c.shadowOffsetY=4;
+ const gr=c.createLinearGradient(-16,0,16,0);gr.addColorStop(0,'#5d6763');gr.addColorStop(.3,'#e4e9e4');gr.addColorStop(.7,'#a5afaa');gr.addColorStop(1,'#4b5450');
+ c.fillStyle=gr;c.beginPath();c.moveTo(-13,-12);c.lineTo(10,-12);c.lineTo(15,-6);c.lineTo(15,21);c.lineTo(-9,21);c.lineTo(-13,15);c.closePath();c.fill();c.shadowColor='transparent';c.strokeStyle='#48514c';c.lineWidth=1.5;c.stroke();
+ c.fillStyle='#48514c';for(const xx of [-6,7]){c.beginPath();c.arc(xx,2,1.8,0,Math.PI*2);c.fill()}
+ c.restore();
+}
+function drawLever(angle){
+ // base
+ ellipse(425,333,30,8,'#161b1930',2);
+ const base=c.createLinearGradient(398,0,451,0);base.addColorStop(0,'#666f6a');base.addColorStop(.5,'#edf1ed');base.addColorStop(1,'#69716d');
+ c.fillStyle=base;c.beginPath();c.roundRect(397,320,56,13,4);c.fill();c.strokeStyle='#616a65';c.stroke();
+ c.save();c.translate(420,324);c.rotate(angle);
+ c.fillStyle='#777f7b';c.beginPath();c.roundRect(-5,-4,70,9,4);c.fill();c.strokeStyle='#414a45';c.lineWidth=1.5;c.stroke();
+ c.fillStyle='#dce3df';c.beginPath();c.arc(61,0,5,0,Math.PI*2);c.fill();c.strokeStyle='#4d5550';c.stroke();
+ c.restore();
+ c.fillStyle='#8c9690';c.beginPath();c.arc(420,324,7,0,Math.PI*2);c.fill();c.strokeStyle='#4d5651';c.stroke();
+}
+function drawSeesaw(angle,ball2Active){
+ // pivot structure
+ c.save();c.translate(603,466);
+ c.fillStyle='#20262244';c.beginPath();c.ellipse(0,12,48,12,0,0,Math.PI*2);c.fill();
+ c.fillStyle='#505954';c.beginPath();c.moveTo(-19,14);c.lineTo(0,-24);c.lineTo(19,14);c.closePath();c.fill();
+ c.fillStyle='#b9c1bd';c.beginPath();c.moveTo(-9,9);c.lineTo(0,-15);c.lineTo(9,9);c.closePath();c.fill();
+ c.save();c.rotate(angle);
+ // wood plank thickness
+ c.fillStyle='#775538';c.fillRect(-72,-7,144,14);
+ const gr=c.createLinearGradient(0,-7,0,7);gr.addColorStop(0,'#d5b083');gr.addColorStop(.38,'#b98c5d');gr.addColorStop(1,'#775236');c.fillStyle=gr;c.fillRect(-72,-8,144,9);
+ c.strokeStyle='#e7c49b';c.lineWidth=1;c.beginPath();c.moveTo(-66,-5);c.lineTo(66,-5);c.stroke();
+ // side end plates
+ c.fillStyle='#63462e';c.fillRect(-72,2,144,5);
+ // launch cup at right
+ c.fillStyle='#4f5954';c.beginPath();c.roundRect(47,-14,19,10,3);c.fill();c.strokeStyle='#202723';c.stroke();
+ c.restore();c.restore();
+}
+function drawLamp(on){
+ // lamp base + stem
+ c.fillStyle='#59615c';c.beginPath();c.roundRect(908,485,32,10,3);c.fill();
+ c.fillStyle='#89918b';c.fillRect(921,466,6,21);
+ c.save();c.shadowColor=on?'#ffe58a':'transparent';c.shadowBlur=on?35:0;
+ const g=c.createRadialGradient(924,456,2,924,456,20);g.addColorStop(0,on?'#fffbd5':'#c4c7c0');g.addColorStop(.35,on?'#ffe174':'#9ba39c');g.addColorStop(1,on?'#d59f20':'#555e58');
+ c.fillStyle=g;c.beginPath();c.moveTo(910,461);c.lineTo(914,447);c.quadraticCurveTo(924,438,934,447);c.lineTo(938,461);c.closePath();c.fill();c.restore();
+}
+function drawScene(t){
+ c.clearRect(0,0,W,H);
+ // studio background
+ let bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#efeee9');bg.addColorStop(1,'#d9d7cf');c.fillStyle=bg;c.fillRect(0,0,W,H);
+ // diffused studio light
+ const glow=c.createRadialGradient(270,45,20,270,45,520);glow.addColorStop(0,'#ffffffb0');glow.addColorStop(1,'#ffffff00');c.fillStyle=glow;c.fillRect(0,0,W,H);
+ // machine platform shadow and side thickness
+ c.save();c.shadowColor='#28282035';c.shadowBlur=25;c.shadowOffsetY=18;
+ c.beginPath();c.moveTo(43,135);c.lineTo(949,96);c.lineTo(972,570);c.lineTo(73,624);c.closePath();c.fillStyle='#72563d';c.fill();c.restore();
+ c.beginPath();c.moveTo(43,125);c.lineTo(949,88);c.lineTo(972,560);c.lineTo(73,612);c.closePath();
+ let wood=c.createLinearGradient(0,100,0,620);wood.addColorStop(0,'#e2c49b');wood.addColorStop(.52,'#c89e70');wood.addColorStop(1,'#b18356');c.fillStyle=wood;c.fill();
+ // tabletop grain
+ c.save();c.beginPath();c.moveTo(43,125);c.lineTo(949,88);c.lineTo(972,560);c.lineTo(73,612);c.closePath();c.clip();
+ for(let i=0;i<25;i++){const y=145+i*19;c.strokeStyle=i%3===0?'#fff1d21e':'#79512b14';c.lineWidth=i%4===0?2:1;c.beginPath();c.moveTo(20,y+Math.sin(i)*9);c.bezierCurveTo(230,y-13,535,y+15,1000,y-25);c.stroke()}
+ // board border
+ c.strokeStyle='#f5dfbb';c.lineWidth=7;c.stroke();
+ c.strokeStyle='#8b613d';c.lineWidth=2;c.stroke();
+ // small corner screws
+ for(const p of [[61,145],[930,110],[86,587],[951,540]]){c.beginPath();c.arc(p[0],p[1],4,0,Math.PI*2);c.fillStyle='#69716a';c.fill();c.beginPath();c.arc(p[0]-1,p[1]-1,1.3,0,Math.PI*2);c.fillStyle='#e2e4dd';c.fill()}
+ c.restore();
+ // tracks: paired metal rails, all visible before animation begins
+ drawTrack(track1,-7);drawTrack(track1,7);
+ drawTrack(track2,-7);drawTrack(track2,7);
+ drawTrack(track3,-6);drawTrack(track3,6);
+ // ramp supports beneath first track
+ for(const [x,y] of [[118,235],[169,262],[221,276]]){c.fillStyle='#616964';c.beginPath();c.moveTo(x-5,y+5);c.lineTo(x+5,y+5);c.lineTo(x+10,y+28);c.lineTo(x-9,y+28);c.closePath();c.fill();c.fillStyle='#9ca59f';c.fillRect(x-7,y+7,5,18)}
+ // domino row
+ const domStart=286,domY=335;
+ for(let i=0;i<9;i++){
+   const fall=easeOut((t-(3.05+i*.29))/.42)*Math.PI/2;
+   drawDomino(domStart+i*14,domY,fall);
+ }
+ // lever wire link, changes tension after dominoes fall
+ const leverPull=easeOut((t-5.45)/1.0);
+ c.strokeStyle='#6d5941';c.lineWidth=2.2;c.beginPath();c.moveTo(479,272);c.bezierCurveTo(462,288,451,304,440,313+leverPull*8);c.stroke();
+ drawLever(lerp(-.12,-.72,leverPull));
+ // pulley and drop weight
+ const weightY=lerp(311,427,easeOut((t-8.8)/4.1));
+ const pulleyAngle=lerp(0,Math.PI*3.4,easeOut((t-5.8)/6));
+ drawPulley(pulleyAngle,weightY);
+ // small rail stop / catch under weight
+ c.fillStyle='#4b534e';c.beginPath();c.roundRect(521,438,49,8,3);c.fill();c.fillStyle='#c5ccc6';c.fillRect(526,439,39,2);
+ // seesaw + impact splash
+ const impact=easeOut((t-12.8)/1.15);
+ const seesawAngle=impact*.48;
+ drawSeesaw(seesawAngle);
+ // landing impact ring
+ if(t>12.7&&t<14.1){const q=clamp((t-12.7)/1.4);c.strokeStyle='#fff1ca';c.globalAlpha=1-q;c.lineWidth=3;c.beginPath();c.arc(545,425,8+q*28,0,Math.PI*2);c.stroke();c.globalAlpha=1}
+ // ball in seesaw launch cup before it is released, then smoothly follows track 2
+ const launch=easeOut((t-14.25)/.65);
+ if(t<14.9){const plankY=466-Math.sin(seesawAngle)*52-12;drawBall(650,plankY,10)}
+ let p2=null;
+ if(t>=14.4&&t<20.0){const u=smooth((t-14.4)/5.6);p2=pathCurve(track2,u);drawBall(p2.x,p2.y-2,12)}
+ else if(t>=20){drawBall(793,378,12)}
+ // wheel hit by second ball. rotation accelerates then coasts
+ const wheelTurn=t<19.1?0:(t-19.1)*3.1;
+ drawGear(805,355,38,wheelTurn,true);
+ drawGear(870,373,27,-wheelTurn*38/27,false);
+ // connecting belt between gears
+ c.strokeStyle='#4b4233';c.lineWidth=5;c.beginPath();c.moveTo(821,322);c.quadraticCurveTo(846,300,862,346);c.stroke();
+ c.strokeStyle='#d7c19b';c.lineWidth=1.5;c.beginPath();c.moveTo(822,320);c.quadraticCurveTo(846,298,864,345);c.stroke();
+ // small crank arm activated by gear 2
+ const crank=smooth((t-20.2)/2.6)*Math.PI*2.4;
+ c.save();c.translate(870,373);c.rotate(crank);
+ c.strokeStyle='#3e4842';c.lineWidth=7;c.lineCap='round';c.beginPath();c.moveTo(0,0);c.lineTo(0,43);c.stroke();
+ c.fillStyle='#d4ddd7';c.beginPath();c.arc(0,43,6,0,Math.PI*2);c.fill();c.strokeStyle='#454e49';c.lineWidth=2;c.stroke();c.restore();
+ // third ball rolls down the return track after the crank releases it
+ let p3=null;
+ if(t>=22.5&&t<26.3){p3=pathCurve(track3,smooth((t-22.5)/3.8));drawBall(p3.x,p3.y-6,9)}
+ else if(t>=26.3){drawBall(888,470,9)}
+ // switch plunger under the end of track
+ const press=easeOut((t-25.5)/.55);
+ c.fillStyle='#4c554f';c.beginPath();c.roundRect(870,473,36,13,4);c.fill();c.fillStyle='#aeb8b0';c.fillRect(876,472+press*5,24,5);
+ c.fillStyle='#252c28';c.beginPath();c.arc(888,470,7,0,Math.PI*2);c.fill();c.fillStyle='#f0f3ee';c.beginPath();c.arc(886,468,2,0,Math.PI*2);c.fill();
+ // final plaque
+ const reveal=easeOut((t-27.0)/1.25);
+ c.save();c.shadowColor=reveal>.15?'#fff0ad':'#0003';c.shadowBlur=reveal*20;c.shadowOffsetY=4;
+ c.fillStyle='#252c28';c.beginPath();c.roundRect(794,510,153,58,7);c.fill();
+ c.shadowColor='transparent';c.strokeStyle='#b8a878';c.lineWidth=1.5;c.stroke();
+ c.fillStyle='#e8ddbd';c.font='bold 24px Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.globalAlpha=.55+reveal*.45;c.fillText('VIQRA',870,539);
+ c.fillStyle='#bcb49d';c.font='8px Arial,sans-serif';c.letterSpacing='2px';c.fillText('CONNECTED MOTION',870,555);c.restore();
+ drawLamp(t>=27.4);
+ // tiny status light on mechanism
+ c.fillStyle=t>5.45?'#dcad47':'#718078';c.beginPath();c.arc(449,345,4,0,Math.PI*2);c.fill();
+ c.fillStyle=t>19?'#dcad47':'#718078';c.beginPath();c.arc(835,405,4,0,Math.PI*2);c.fill();
+ // cinematic soft vignette
+ const vign=c.createRadialGradient(500,315,180,500,315,610);vign.addColorStop(.55,'#00000000');vign.addColorStop(1,'#26282020');c.fillStyle=vign;c.fillRect(0,0,W,H);
+ // subtle surface reflection
+ c.save();c.globalAlpha=.13;c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.moveTo(95,152);c.lineTo(900,119);c.stroke();c.restore();
+}
+function getStatus(t){
+ if(t<.2)return 'READY — STARTで30秒の連鎖が始まります。';
+ if(t<3.1)return '01 / STEEL MARBLE — ビー玉がレールを滑らかに下降中。';
+ if(t<5.8)return '02 / DOMINO CASCADE — 倒れる力が次のピースへ伝わります。';
+ if(t<8.8)return '03 / RELEASE LEVER — 最後のドミノがレバーを引きます。';
+ if(t<12.8)return '04 / PULLEY & WEIGHT — 滑車が回り、重りが下降。';
+ if(t<14.4)return '05 / COUNTERWEIGHT — 重りがシーソーを押し下げます。';
+ if(t<19.1)return '06 / LAUNCH — シーソーが次のボールを送り出します。';
+ if(t<22.5)return '07 / GEAR TRAIN — ボールの衝撃で歯車が回転。';
+ if(t<26.3)return '08 / RETURN TRACK — クランクが最後のボールを解放。';
+ if(t<28)return '09 / SWITCH — ボールがスイッチを押しました。';
+ if(t<DURATION)return 'FINAL / VIQRA — すべての動きがひとつに繋がる。';
+ return 'COMPLETE — もう一度、連鎖を見てみよう。';
+}
+function draw(t){lastT=t;drawScene(t);const secs=Math.min(DURATION,Math.max(0,t));clock.textContent='00:'+String(Math.floor(secs)).padStart(2,'0')+' / 00:30';status.textContent=getStatus(t)}
+function frame(now){if(startedAt===null)return;const t=(now-startedAt)/1000;if(t>=DURATION){draw(DURATION);startedAt=null;finished=true;startBtn.textContent='REPLAY';return}draw(t);raf=requestAnimationFrame(frame)}
+function run(){cancelAnimationFrame(raf);startedAt=performance.now();finished=false;startBtn.textContent='RESTART';draw(0);status.textContent=getStatus(0);raf=requestAnimationFrame(frame)}
+startBtn.addEventListener('click',run);
+draw(0);resize();
+})();
+</script>
+</body>
+</html>
