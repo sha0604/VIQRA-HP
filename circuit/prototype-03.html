@@ -53,7 +53,7 @@ function pathCurve(p,t){const u=1-t;return{x:u*u*u*p[0].x+3*u*u*t*p[1].x+3*u*t*t
 function curvePath(ctx,p,off=0){ctx.beginPath();ctx.moveTo(p[0].x,p[0].y+off);ctx.bezierCurveTo(p[1].x,p[1].y+off,p[2].x,p[2].y+off,p[3].x,p[3].y+off)}
 function ellipse(x,y,rx,ry,fill,blur=0){c.save();c.shadowColor=blur?'#171b1840':'transparent';c.shadowBlur=blur;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();c.restore()}
 const track1=[{x:83,y:206},{x:128,y:214},{x:173,y:273},{x:267,y:284}];
-const track2=[{x:649,y:423},{x:682,y:385},{x:741,y:402},{x:786,y:359}];
+const track2=[{x:649,y:433},{x:682,y:388},{x:741,y:405},{x:786,y:359}];
 const track3=[{x:813,y:383},{x:831,y:413},{x:860,y:430},{x:888,y:470}];
 function drawTrack(p,offset=0){
   curvePath(c,p,offset+5);c.strokeStyle='#20252255';c.lineWidth=13;c.lineCap='round';c.stroke();
@@ -173,6 +173,9 @@ function drawScene(t){
    const fall=easeOut((t-(3.05+i*.29))/.42)*Math.PI/2;
    drawDomino(domStart+i*14,domY,fall);
  }
+ // first marble follows one continuous curve and stays at its contact point
+ const p1=pathCurve(track1, t<3.05?smooth(t/3.05):1);
+ drawBall(p1.x,p1.y-1,12);
  // lever wire link, changes tension after dominoes fall
  const leverPull=easeOut((t-5.45)/1.0);
  c.strokeStyle='#6d5941';c.lineWidth=2.2;c.beginPath();c.moveTo(479,272);c.bezierCurveTo(462,288,451,304,440,313+leverPull*8);c.stroke();
@@ -191,10 +194,10 @@ function drawScene(t){
  if(t>12.7&&t<14.1){const q=clamp((t-12.7)/1.4);c.strokeStyle='#fff1ca';c.globalAlpha=1-q;c.lineWidth=3;c.beginPath();c.arc(545,425,8+q*28,0,Math.PI*2);c.stroke();c.globalAlpha=1}
  // ball in seesaw launch cup before it is released, then smoothly follows track 2
  const launch=easeOut((t-14.25)/.65);
- if(t<14.9){const plankY=466+Math.sin(seesawAngle)*48-12;drawBall(650,plankY,10)}
+ if(t<14.4){const plankY=466+Math.sin(seesawAngle)*48-12;drawBall(650,plankY,10)}
  let p2=null;
- if(t>=14.4&&t<20.0){const u=smooth((t-14.4)/5.6);p2=pathCurve(track2,u);drawBall(p2.x,p2.y-2,12)}
- else if(t>=20){drawBall(786,359,12)}
+ if(t>=14.4&&t<20.0){const u=smooth((t-14.4)/5.6);p2=pathCurve(track2,u);drawBall(p2.x,p2.y-1,12)}
+ else if(t>=20){drawBall(786,358,12)}
  // wheel hit by second ball. rotation accelerates then coasts
  const wheelTurn=t<19.1?0:(t-19.1)*3.1;
  drawGear(805,355,38,wheelTurn,true);
@@ -209,7 +212,7 @@ function drawScene(t){
  c.fillStyle='#d4ddd7';c.beginPath();c.arc(0,43,6,0,Math.PI*2);c.fill();c.strokeStyle='#454e49';c.lineWidth=2;c.stroke();c.restore();
  // third ball rolls down the return track after the crank releases it
  let p3=null;
- if(t>=22.5&&t<26.3){p3=pathCurve(track3,smooth((t-22.5)/3.8));drawBall(p3.x,p3.y-6,9)}
+ if(t>=22.5&&t<26.3){p3=pathCurve(track3,smooth((t-22.5)/3.8));drawBall(p3.x,p3.y-1,9)}
  else if(t>=26.3){drawBall(888,470,9)}
  // switch plunger under the end of track
  const press=easeOut((t-25.5)/.55);
