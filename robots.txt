@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sha0604.github.io/VIQRA-HP/sitemap.xml
