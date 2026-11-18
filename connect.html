@@ -110,6 +110,7 @@ h2 span{background:linear-gradient(100deg,#2fd3c4,#4a7fe0);-webkit-background-cl
 .line-btn{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;background:#06c755;color:#fff;font-weight:700;font-size:14px;box-shadow:none;-webkit-tap-highlight-color:transparent}
 .mail-btn{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;background:#101a36;color:#fff;font-weight:700;font-size:14px;box-shadow:none;-webkit-tap-highlight-color:transparent}
 .line-btn:active,.mail-btn:active{opacity:.85}
+.ig-btn{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;font-weight:700;font-size:14px;text-decoration:none}
 footer{padding:24px 0;font-size:11px;letter-spacing:.08em;color:var(--mute);border-top:1px solid var(--line)}
 .footer-links{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .footer-links a{text-decoration:underline;text-underline-offset:4px}
@@ -126,6 +127,16 @@ nav.open{display:flex}.menu{display:block}
 .qa{padding:22px 20px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:55;display:none;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card,#ffffff) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line,#e7e3f0)}
+.sticky-cta a{flex:1;text-align:center;padding:13px 10px;border-radius:999px;font-weight:700;font-size:13.5px;text-decoration:none}
+.sticky-cta .sc-line{background:#06c755;color:#fff}
+.sticky-cta .sc-ig{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}
+@media(max-width:800px){.sticky-cta{display:flex}body{padding-bottom:70px}}
+
+@media(max-width:800px){.cbtn .line-btn,.cbtn .ig-btn{display:none}}
+
+.nb{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -260,7 +271,7 @@ nav.open{display:flex}.menu{display:block}
   </ul>
   <div class="cbtn">
     <a class="line-btn" href="https://lin.ee/9P7296d" target="_blank" rel="noopener">LINEで相談する ↗</a>
-    <a class="mail-btn" href="mailto:viqra.shahin@outlook.jp?subject=VIQRA%20CONNECT%E3%81%B8%E3%81%AE%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B">メールで相談する ↗</a>
+    <a class="mail-btn" href="mailto:viqra.shahin@outlook.jp?subject=VIQRA%20CONNECT%E3%81%B8%E3%81%AE%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B">メールでも相談できます ↗</a>
   </div>
 </div></section>
 </main>
@@ -277,5 +288,9 @@ nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',functio
 var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('show')})},{threshold:.12});
 document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
 </script>
+
+<div class="sticky-cta">
+<a class="sc-line" href="https://lin.ee/9P7296d" target="_blank" rel="noopener">LINEで相談する</a>
+</div>
 </body>
 </html>
