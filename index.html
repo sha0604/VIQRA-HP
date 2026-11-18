@@ -91,6 +91,7 @@ dl{max-width:720px;margin:36px auto 0;border-top:1px solid var(--line)}
 .cbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px}
 .line-btn{padding:15px 28px;border-radius:999px;background:#06c755;color:#fff;font-weight:700;font-size:14px}
 .mail-btn{padding:15px 28px;border-radius:999px;background:#101a36;color:#fff;font-weight:700;font-size:14px}
+.ig-btn{padding:15px 28px;border-radius:999px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;font-weight:700;font-size:14px;text-decoration:none}
 .note{margin-top:16px;font-size:13px;color:var(--mute)}
 footer{padding:22px 0;text-align:center;font-size:11px;color:var(--mute);letter-spacing:.08em}
 @media(max-width:800px){.waves{height:90px}nav{display:none;position:absolute;top:100%;left:14px;right:14px;flex-direction:column;gap:16px;padding:18px;background:rgba(16,26,54,.98);border-radius:16px;box-shadow:0 18px 40px rgba(8,12,28,.35)}nav.open{display:flex}.menu{display:block}.cards{grid-template-columns:1fr}.row{grid-template-columns:88px 1fr}}
@@ -154,6 +155,23 @@ h1,h2,h3{text-wrap:balance}
 p,li,dt,dd,.lead{text-wrap:pretty}
 h1,h2,h3,p,li,dt,dd{word-break:auto-phrase}
 .nb{white-space:nowrap}
+
+.sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:55;display:none;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card,#ffffff) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line,#e7e3f0)}
+.sticky-cta a{flex:1;text-align:center;padding:13px 10px;border-radius:999px;font-weight:700;font-size:13.5px;text-decoration:none}
+.sticky-cta .sc-line{background:#06c755;color:#fff}
+.sticky-cta .sc-ig{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}
+@media(max-width:800px){.sticky-cta{display:flex}body{padding-bottom:70px}}
+
+@media(max-width:800px){.cbtns .line-btn,.cbtns .ig-btn{display:none}}
+
+.story-open{margin:48px auto 0;border-top:1px solid var(--line);padding-top:40px;text-align:left}
+
+/* ---------- History / Record headings ---------- */
+.flow,.deal{display:grid;gap:26px}
+@media(min-width:801px){.flow{grid-template-columns:repeat(3,1fr)}.deal{grid-template-columns:repeat(2,1fr)}}
+.flow b,.deal b{display:block;position:relative;font-size:16.5px;font-weight:800;letter-spacing:.03em;line-height:1.5;padding-left:15px;margin-bottom:9px}
+.flow b::before,.deal b::before{content:"";position:absolute;left:0;top:.16em;bottom:.16em;width:3.5px;border-radius:2px;background:linear-gradient(180deg,#2fd3c4,#6aa8ff)}
+.flow p,.deal p{margin:0;color:var(--mute);font-size:14px;line-height:1.85}
 </style>
 
 </head>
@@ -211,11 +229,11 @@ h1,h2,h3,p,li,dt,dd{word-break:auto-phrase}
 <div class="row"><dt>事業内容</dt><dd><span class="nb">通信関連事業</span><span class="nb">（販売支援・販売斡旋）／</span><span class="nb">配信事業</span></dd></div>
 </dl>
 <div style="text-align:center"><button class="greeting-trigger" type="button">代表挨拶を読む ↗</button></div>
-<details class="story-details reveal"><summary>沿革・取引実績を見る<span aria-hidden="true">＋</span></summary><div class="story-detail-body"><div class="num sub reveal">HISTORY / 沿革</div>
+<div class="story-open reveal"><div class="num sub reveal">HISTORY / 沿革</div>
 <div class="flow reveal">
 <div><b>2022｜開業</b><p><span class="nb">個人事業として開業。</span><span class="nb">携帯キャリア関連の</span><span class="nb">販売支援に</span><span class="nb">取り組んできました。</span></p></div>
 <div><b>2026｜法人化</b><p>合同会社VIQRAを設立しました。</p></div>
-<div><b>これから｜事業領域の拡大</b><p><span class="nb">配信事業を展開し、</span><span class="nb">将来は海外拠点の</span><span class="nb">実現を目指します。</span></p></div>
+<div><b>これから｜事業領域の拡大</b><p><span class="nb">配信事業を展開し、</span><span class="nb">将来はVILLA事業で</span><span class="nb">海外拠点の実現を</span><span class="nb">目指します。</span></p></div>
 </div>
 <div class="num sub reveal">RECORD / 取引実績</div>
 <div class="deal reveal">
@@ -223,18 +241,18 @@ h1,h2,h3,p,li,dt,dd{word-break:auto-phrase}
 <div><b>パートナー企業との提携</b><p><span class="nb">パートナー企業と連携し、</span><span class="nb">各社の強みを</span><span class="nb">活かしながら</span><span class="nb">携帯キャリア商材の</span><span class="nb">販売拡大と現場支援に</span><span class="nb">取り組んでいます。</span></p></div>
 </div>
 <p class="cl-h reveal">主な取引先（順不同・敬称略）</p>
-<ul class="clients reveal"><li>株式会社クレヤ</li><li>ヴァリアス株式会社</li><li>株式会社DNS</li><li>株式会社リープス</li><li>株式会社エージェント</li><li>株式会社エアフォルク</li><li>株式会社ウェルコア</li></ul></div></details>
+<ul class="clients reveal"><li>株式会社クレヤ</li><li>ヴァリアス株式会社</li><li>株式会社DNS</li><li>株式会社リープス</li><li>株式会社エージェント</li><li>株式会社エアフォルク</li><li>株式会社ウェルコア</li></ul></div>
 </div></section>
 
 <section id="contact" class="contact"><div class="wrap reveal">
 <div class="num">04 / CONTACT</div>
 <h2>お問い合わせ</h2>
-<p class="center-p">ご相談は公式LINEかメールでどうぞ。</p>
-<div class="cbtns"><a class="line-btn" href="https://lin.ee/9P7296d" target="_blank" rel="noopener">LINEで相談する</a><a class="mail-btn" href="mailto:viqra.shahin@outlook.jp">メールで相談する</a></div>
+<p class="center-p">ご相談は公式LINEかメールでどうぞ。<span class="nb">配信については、</span><span class="nb">Instagramでも</span><span class="nb">発信しています。</span></p>
+<div class="cbtns"><a class="line-btn" href="https://lin.ee/9P7296d" target="_blank" rel="noopener">LINEで相談する</a><a class="mail-btn" href="mailto:viqra.shahin@outlook.jp">メールで相談する</a><a class="ig-btn" href="https://www.instagram.com/viqra.2026/" target="_blank" rel="noopener">Instagramを見る ↗</a></div>
 <p class="note">公式LINEはスタッフが対応します（受付 10:00〜20:00）</p>
 </div></section>
 </main>
-<footer><div class="foot-mark" aria-hidden="true">VIQRA</div><div class="wrap" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>© 2026 合同会社VIQRA. ALL RIGHTS RESERVED.</span><a href="privacy-policy.html">プライバシーポリシー</a></div></footer>
+<footer><div class="foot-mark" aria-hidden="true">VIQRA</div><div class="wrap" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>© 2026 合同会社VIQRA. ALL RIGHTS RESERVED.</span><span><a href="https://www.instagram.com/viqra.2026/" target="_blank" rel="noopener">Instagram</a>　｜　<a href="privacy-policy.html">プライバシーポリシー</a></span></div></footer>
 <dialog class="greeting-modal" id="greeting-modal" aria-labelledby="greeting-title">
 <div class="greeting-head"><span class="num">MESSAGE / 代表挨拶</span><button class="greeting-close" type="button" aria-label="代表挨拶を閉じる">×</button></div>
 <div class="greeting-content">
@@ -269,5 +287,10 @@ var menu=document.querySelector('.menu'),snav=document.getElementById('site-nav'
 menu.addEventListener('click',function(){var open=snav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open))});
 snav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){snav.classList.remove('open');menu.setAttribute('aria-expanded','false')})});
 </script>
+
+<div class="sticky-cta">
+<a class="sc-line" href="https://lin.ee/9P7296d" target="_blank" rel="noopener">LINEで相談する</a>
+<a class="sc-ig" href="https://www.instagram.com/viqra.2026/" target="_blank" rel="noopener">Instagram</a>
+</div>
 </body>
 </html>
