@@ -8,7 +8,7 @@
 
     <!-- ===== Google検索向けの基本設定（SEO） ===== -->
     <title>VIQRA（ヴィクラ）｜宮崎の配信サービス専門コンサルティング ― 配信者募集中</title>
-    <meta name="description" content="VIQRA（ヴィクラ）は宮崎を拠点とする配信サービス専門のコンサルティング会社です。現在は、配信はライブチャットがメインです。配信に興味がある方を募集中。まずは話を聞くだけでも大丈夫です。公式LINEからいつでも相談できます（受付 10:00〜20:00）。" />
+    <meta name="description" content="VIQRA（ヴィクラ）は宮崎を拠点とする配信サービス専門のコンサルティング会社です。現在のメインは、ライブチャット配信です。配信に興味がある方を募集中。まずは話を聞くだけでも大丈夫です。公式LINEからいつでも相談できます（受付 10:00〜20:00）。" />
     <meta name="keywords" content="VIQRA,ヴィクラ,宮崎,配信,ライブ配信,配信者募集,配信コンサルティング" />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="VIQRA" />
@@ -386,9 +386,41 @@
         html { scroll-behavior: auto; }
         .btn { transition: none; }
       }
-    </style>
+    
+      /* ---------- Site bar ---------- */
+      html { scroll-padding-top: 76px; }
+      .hero { padding-top: 60px; }
+      .sitebar { position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+      .sitebar-in { display: flex; justify-content: space-between; align-items: center; height: 60px; }
+      .sitebar-logo { font-weight: 800; font-size: 17px; letter-spacing: .04em; text-decoration: none; display: flex; align-items: baseline; gap: 9px; }
+      .sitebar-logo small { font-size: 10px; font-weight: 700; color: var(--ink-soft); letter-spacing: .06em; }
+      .sitebar-nav { display: flex; gap: 20px; font-size: 12.5px; font-weight: 700; }
+      .sitebar-nav a { text-decoration: none; color: var(--ink-soft); }
+      .sitebar-nav a:hover { color: var(--coral-deep); }
+      .sitebar .menu { display: none; background: none; border: 0; color: var(--ink); font-size: 24px; cursor: pointer; line-height: 1; padding: 6px; min-height: auto; }
+      @media (max-width: 800px) {
+        .sitebar-nav { display: none; position: absolute; top: 100%; left: 14px; right: 14px; flex-direction: column; gap: 14px; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
+        .sitebar-nav.open { display: flex; }
+        .sitebar .menu { display: block; }
+      }
+</style>
   </head>
   <body>
+
+    <!-- ===== サイトバー ===== -->
+    <header class="sitebar">
+      <div class="wrap sitebar-in">
+        <a class="sitebar-logo" href="index.html">VIQRA LIVE<small>合同会社VIQRA ／ 配信事業</small></a>
+        <button class="menu" aria-label="メニュー" aria-expanded="false" aria-controls="site-nav">☰</button>
+        <nav id="site-nav" class="sitebar-nav">
+          <a href="#about">VIQRAについて</a>
+          <a href="#style">配信スタイル</a>
+          <a href="#flow">相談の流れ</a>
+          <a href="#faq">よくある質問</a>
+          <a href="index.html">TOP ↗</a>
+        </nav>
+      </div>
+    </header>
 
     <!-- ===== ヒーロー ===== -->
     <header class="hero">
@@ -399,7 +431,7 @@
           <h1>配信で、<br />新しい<span class="accent">一歩</span>を。</h1>
           <p class="hero-lead">
             VIQRA（ヴィクラ）は、<strong>配信サービス専門のコンサルティング会社</strong>です。
-            現在は、配信はライブチャットがメインです。
+            現在のメインは、ライブチャット配信です。
             配信に興味がある方を募集しています。気になるけど、まだ迷っている方も、
             <strong>まずは話を聞くだけでも大丈夫</strong>です。
           </p>
@@ -458,8 +490,8 @@
             <h3>配信サービス専門の<br />コンサルティング</h3>
             <p>
               VIQRAは宮崎を拠点に、配信サービスのコンサルティングを行っている会社です。
-              現在は、配信はライブチャットがメインです。
-              配信を始めてみたい方の相談にのり、配信デビューから日々の配信まで、
+              現在のメインは、ライブチャット配信です。
+              配信を始めてみたい方の相談に乗り、配信デビューから日々の配信まで、
               一人ひとりのペースに合わせてサポートします。
             </p>
           </div>
@@ -571,5 +603,10 @@
       <a class="btn btn-ghost" href="https://www.instagram.com/viqra.2026/" target="_blank" rel="noopener">Instagram</a>
     </div>
 
+      <script>
+      var menu=document.querySelector('.sitebar .menu'),snav=document.getElementById('site-nav');
+      menu.addEventListener('click',function(){var open=snav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open))});
+      snav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){snav.classList.remove('open');menu.setAttribute('aria-expanded','false')})});
+    </script>
   </body>
 </html>
